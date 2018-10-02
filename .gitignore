@@ -1,0 +1,7 @@
+/.idea/
+/target/
+*.iml
+*.swp
+config.yml
+subreddits.yml
+/data/
