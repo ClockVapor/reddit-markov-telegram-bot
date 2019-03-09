@@ -15,7 +15,7 @@ object Main {
         val config = Config.read(a.configPath)
         val scraper = RedditScraper(a.dataPath, config.redditClientId, config.redditClientSecret, config.redditAppId,
             config.redditAppVersion, config.redditUsername, config.redditFetchAmount!!, config.redditFetchInterval!!)
-        RedditMarkovTelegramBot(config.telegramBotToken, a.dataPath, scraper).run()
+        RedditMarkovTelegramBot(a.dataPath, config.telegramBotToken, scraper).run()
     }
 
     fun readMarkov(dataPath: String, subreddit: String): RedditMarkovChain =

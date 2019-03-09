@@ -22,7 +22,7 @@ class RedditScraper(private val dataPath: String,
     }
 
     private fun scrape(dataPath: String, reddit: RedditClient, subreddit: String, fetchAmount: Int) {
-        val markov = tryOrNull { Main.readMarkov(dataPath, subreddit) } ?: RedditMarkovChain()
+        val markov = tryOrNull(reportException = false) { Main.readMarkov(dataPath, subreddit) } ?: RedditMarkovChain()
         var i = 0
         var new = 0
         listing@ for (listing in reddit.subreddit(subreddit).comments().limit(fetchAmount).build()) {

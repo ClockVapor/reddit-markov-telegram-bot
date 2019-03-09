@@ -64,7 +64,7 @@ class RedditMarkovTelegramBot(private val dataPath: String,
     private fun readMarkov(bot: Bot, chatId: Long, dataPath: String, subreddit: String): RedditMarkovChain {
         val file = File(Main.getMarkovPath(dataPath, subreddit))
         return if (file.exists()) {
-            if (file.lastModified() - (System.currentTimeMillis() / 1000L) > scraper.fetchInterval) {
+            if ((System.currentTimeMillis() - file.lastModified()) / 1000L > scraper.fetchInterval) {
                 log("Current data for requested subreddit \"$subreddit\" is old. Fetching new data now.")
                 bot.sendChatAction(chatId, ChatAction.TYPING)
                 if (file.delete()) {
