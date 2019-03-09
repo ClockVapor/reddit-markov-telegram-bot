@@ -12,7 +12,7 @@ class Config {
     lateinit var redditAppVersion: String
     lateinit var redditUsername: String
     var redditFetchAmount: Int? = null
-    var redditFetchIntervalMs: Long? = null
+    var redditFetchInterval: Long? = null
 
     companion object {
         fun read(path: String): Config =
