@@ -1,4 +1,4 @@
-package clockvapor.redditmarkovtelegrambot
+package clockvapor.telegram.redditmarkov
 
 import clockvapor.markov.MarkovChain
 import com.fasterxml.jackson.databind.ObjectMapper

@@ -1,4 +1,4 @@
-package clockvapor.redditmarkovtelegrambot
+package clockvapor.telegram.redditmarkov
 
 import net.dean.jraw.RedditClient
 import net.dean.jraw.http.OkHttpNetworkAdapter
@@ -19,13 +19,13 @@ object RedditScraper {
     fun run(clientId: String, clientSecret: String, appId: String, appVersion: String, username: String,
             fetchAmount: Int, fetchIntervalMs: Long, dataPath: String) {
 
-        this.clientId = clientId
-        this.clientSecret = clientSecret
-        this.appId = appId
-        this.appVersion = appVersion
-        this.username = username
-        this.fetchAmount = fetchAmount
-        this.dataPath = dataPath
+        RedditScraper.clientId = clientId
+        RedditScraper.clientSecret = clientSecret
+        RedditScraper.appId = appId
+        RedditScraper.appVersion = appVersion
+        RedditScraper.username = username
+        RedditScraper.fetchAmount = fetchAmount
+        RedditScraper.dataPath = dataPath
 
         while (true) {
             tryOrLog { scrape(clientId, clientSecret, appId, appVersion, username, fetchAmount, dataPath) }
@@ -34,8 +34,11 @@ object RedditScraper {
     }
 
     fun scrape(subreddit: String) {
-        val reddit = buildReddit(clientId, clientSecret, appId, appVersion, username)
-        val subreddits = tryOrNull { Main.readSubredditsList().toMutableSet() } ?: mutableSetOf()
+        val reddit =
+            buildReddit(clientId, clientSecret, appId, appVersion, username)
+        val subreddits = tryOrNull {
+            Main.readSubredditsList().toMutableSet()
+        } ?: mutableSetOf()
         subreddits += subreddit
         Main.writeSubredditsList(subreddits)
         tryOrLog { scrape(dataPath, reddit, subreddit, fetchAmount!!) }
@@ -44,8 +47,10 @@ object RedditScraper {
     private fun scrape(clientId: String, clientSecret: String, appId: String,
                        appVersion: String, username: String, fetchAmount: Int, dataPath: String) {
 
-        val reddit = buildReddit(clientId, clientSecret, appId, appVersion, username)
-        tryOrNull { Main.readSubredditsList() }?.let { subreddits ->
+        val reddit =
+            buildReddit(clientId, clientSecret, appId, appVersion, username)
+        tryOrNull { Main.readSubredditsList() }
+            ?.let { subreddits ->
             for (subreddit in subreddits) {
                 tryOrLog { scrape(dataPath, reddit, subreddit, fetchAmount) }
             }
@@ -53,7 +58,8 @@ object RedditScraper {
     }
 
     private fun scrape(dataPath: String, reddit: RedditClient, subreddit: String, fetchAmount: Int) {
-        val markov = tryOrNull { Main.readMarkov(dataPath, subreddit) } ?: RedditMarkovChain()
+        val markov = tryOrNull { Main.readMarkov(dataPath, subreddit) }
+            ?: RedditMarkovChain()
         var i = 0
         var new = 0
         listing@ for (listing in reddit.subreddit(subreddit).comments().limit(fetchAmount).build()) {

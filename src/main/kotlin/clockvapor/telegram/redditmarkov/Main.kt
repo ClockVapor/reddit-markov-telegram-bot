@@ -1,4 +1,4 @@
-package clockvapor.redditmarkovtelegrambot
+package clockvapor.telegram.redditmarkov
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
@@ -16,7 +16,7 @@ object Main {
     fun main(args: Array<String>): Unit = mainBody {
         val a = ArgParser(args).parseInto(::Args)
         val config = Config.read(a.configPath)
-        thread { TelegramBot(config.telegramBotToken).run(a.dataPath) }
+        thread { RedditMarkovTelegramBot(config.telegramBotToken, a.dataPath).run() }
         thread {
             RedditScraper.run(config.redditClientId, config.redditClientSecret, config.redditAppId,
                 config.redditAppVersion, config.redditUsername, config.redditFetchAmount!!,
@@ -31,7 +31,7 @@ object Main {
         synchronized(Main) { markov.write(getMarkovPath(dataPath, subreddit)) }
 
     private fun getMarkovPath(dataPath: String, subreddit: String): String =
-        Paths.get(Main.createAndGetDataPath(dataPath), "${subreddit.toLowerCase(Locale.ENGLISH)}.json").toString()
+        Paths.get(createAndGetDataPath(dataPath), "${subreddit.toLowerCase(Locale.ENGLISH)}.json").toString()
 
     @Suppress("UNCHECKED_CAST")
     fun readSubredditsList(): Set<String> = synchronized(Main) {

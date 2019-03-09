@@ -1,4 +1,4 @@
-package clockvapor.redditmarkovtelegrambot
+package clockvapor.telegram.redditmarkov
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
