@@ -7,8 +7,6 @@ import java.nio.file.Paths
 import java.util.*
 
 object Main {
-    val whitespaceRegex = Regex("\\s+")
-
     @JvmStatic
     fun main(args: Array<String>): Unit = mainBody {
         val a = ArgParser(args).parseInto(::Args)

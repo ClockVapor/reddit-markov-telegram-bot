@@ -3,6 +3,7 @@ package clockvapor.telegram.redditmarkov
 import clockvapor.markov.MarkovChain
 import clockvapor.telegram.log
 import clockvapor.telegram.tryOrNull
+import clockvapor.telegram.whitespaceRegex
 import me.ivmg.telegram.Bot
 import me.ivmg.telegram.bot
 import me.ivmg.telegram.dispatch
@@ -36,13 +37,13 @@ class RedditMarkovTelegramBot(private val dataPath: String,
                 ?.substring(command.offset + command.length)
                 ?.trim()
                 ?.takeIf { it.isNotBlank() }
-                ?.split(Main.whitespaceRegex)
+                ?.split(whitespaceRegex)
                 ?.let { texts ->
                     when (texts.size) {
                         0 -> EXPECTED_SUBREDDIT_NAME
-                        1 -> tryOrNull { generateComment(bot, message.chat.id, dataPath, texts[0]) }
+                        1 -> tryOrNull { generateComment(bot, message.chat.id, texts[0]) }
                         2 -> tryOrNull {
-                            when (val result = generateComment(bot, message.chat.id, dataPath, texts[0], texts[1])) {
+                            when (val result = generateComment(bot, message.chat.id, texts[0], texts[1])) {
                                 is MarkovChain.GenerateWithSeedResult.Success ->
                                     result.message.takeIf { it.isNotEmpty() }?.joinToString(" ")
                                 is MarkovChain.GenerateWithSeedResult.NoSuchSeed ->
@@ -56,14 +57,14 @@ class RedditMarkovTelegramBot(private val dataPath: String,
         bot.sendMessage(message.chat.id, replyText, replyToMessageId = message.messageId)
     }
 
-    private fun generateComment(bot: Bot, chatId: Long, dataPath: String, subreddit: String): String =
-        readMarkov(bot, chatId, dataPath, subreddit).generate().joinToString(" ")
+    private fun generateComment(bot: Bot, chatId: Long, subreddit: String): String =
+        readMarkov(bot, chatId, subreddit).generate().joinToString(" ")
 
-    private fun generateComment(bot: Bot, chatId: Long, dataPath: String, subreddit: String, seed: String)
+    private fun generateComment(bot: Bot, chatId: Long, subreddit: String, seed: String)
         : MarkovChain.GenerateWithSeedResult =
-        readMarkov(bot, chatId, dataPath, subreddit).generateWithCaseInsensitiveSeed(seed)
+        readMarkov(bot, chatId, subreddit).generateWithCaseInsensitiveSeed(seed)
 
-    private fun readMarkov(bot: Bot, chatId: Long, dataPath: String, subreddit: String): RedditMarkovChain {
+    private fun readMarkov(bot: Bot, chatId: Long, subreddit: String): RedditMarkovChain {
         val file = File(Main.getMarkovPath(dataPath, subreddit))
         return if (file.exists()) {
             if ((System.currentTimeMillis() - file.lastModified()) / 1000L > scraper.fetchInterval) {
