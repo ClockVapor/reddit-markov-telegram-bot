@@ -1,5 +1,8 @@
 package clockvapor.telegram.redditmarkov
 
+import clockvapor.telegram.log
+import clockvapor.telegram.tryOrLog
+import clockvapor.telegram.tryOrNull
 import net.dean.jraw.RedditClient
 import net.dean.jraw.http.OkHttpNetworkAdapter
 import net.dean.jraw.http.UserAgent

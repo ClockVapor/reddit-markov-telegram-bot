@@ -1,6 +1,8 @@
 package clockvapor.telegram.redditmarkov
 
 import clockvapor.markov.MarkovChain
+import clockvapor.telegram.log
+import clockvapor.telegram.tryOrNull
 import me.ivmg.telegram.Bot
 import me.ivmg.telegram.bot
 import me.ivmg.telegram.dispatch
