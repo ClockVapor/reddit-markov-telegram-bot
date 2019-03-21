@@ -1,6 +1,7 @@
 package clockvapor.telegram.redditmarkov
 
 import clockvapor.markov.MarkovChain
+import clockvapor.telegram.whitespaceRegex
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.dean.jraw.models.Comment
 import java.io.File
@@ -14,7 +15,7 @@ class RedditMarkovChain(val ids: MutableSet<String> = mutableSetOf(),
     fun add(comment: Comment): Boolean {
         val body = comment.body.trim()
         return if (body.isNotBlank() && ids.add(comment.uniqueId)) {
-            add(body.split(Main.whitespaceRegex))
+            add(body.split(whitespaceRegex))
             true
         } else false
     }

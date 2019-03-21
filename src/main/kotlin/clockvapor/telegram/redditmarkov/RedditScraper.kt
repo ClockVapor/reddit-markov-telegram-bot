@@ -25,7 +25,8 @@ class RedditScraper(private val dataPath: String,
     }
 
     private fun scrape(dataPath: String, reddit: RedditClient, subreddit: String, fetchAmount: Int) {
-        val markov = tryOrNull(reportException = false) { Main.readMarkov(dataPath, subreddit) } ?: RedditMarkovChain()
+        val markov = tryOrNull(reportException = false) { RedditMarkovTelegramBot.readMarkov(dataPath, subreddit) }
+            ?: RedditMarkovChain()
         var i = 0
         var new = 0
         listing@ for (listing in reddit.subreddit(subreddit).comments().limit(fetchAmount).build()) {
@@ -37,7 +38,7 @@ class RedditScraper(private val dataPath: String,
             }
         }
         log("$new/$i comments fetched from $subreddit were added")
-        Main.writeMarkov(dataPath, subreddit, markov)
+        RedditMarkovTelegramBot.writeMarkov(dataPath, subreddit, markov)
     }
 
     private fun buildReddit(clientId: String, clientSecret: String, appId: String, appVersion: String,
