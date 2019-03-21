@@ -11,6 +11,7 @@ import me.ivmg.telegram.bot
 import me.ivmg.telegram.dispatch
 import me.ivmg.telegram.dispatcher.command
 import me.ivmg.telegram.entities.ChatAction
+import me.ivmg.telegram.entities.ParseMode
 import me.ivmg.telegram.entities.Update
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.File
@@ -51,12 +52,23 @@ class RedditMarkovTelegramBot(private val dataPath: String,
             this.token = this@RedditMarkovTelegramBot.token
             logLevel = HttpLoggingInterceptor.Level.NONE
             dispatch {
+                command("start") { bot, update -> giveHelp(bot, update) }
+                command("help") { bot, update -> giveHelp(bot, update) }
                 command("comment") { bot, update ->
                     handleUpdate(bot, update)
                 }
             }
         }
         bot.startPolling()
+    }
+
+    private fun giveHelp(bot: Bot, update: Update) {
+        bot.sendMessage(update.message!!.chat.id,
+            "I create Markov chains for subreddits and use them to generate \"new\" comments.\n\n" +
+                "Use the /comment command like so:\n`/comment <subreddit> [seed]`\n" +
+                "Provide the subreddit name without the `/r/`, and optionally provide a seed word to start the " +
+                "generated comment with.",
+            parseMode = ParseMode.MARKDOWN)
     }
 
     private fun handleUpdate(bot: Bot, update: Update) {
