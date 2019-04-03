@@ -16,3 +16,23 @@ word following the subreddit name to tell the bot which word to start with when 
 
 When a subreddit is requested via this command, its newest comments are fetched and analyzed in bulk, and they are only
 fetched a maximum of once per hour to prevent redundant traffic and analysis.
+
+### /post
+To generate a post from a subreddit (title and body), use the `/post` command. The command expects a subreddit name
+following it to know which subreddit you want to generate a post from: `/post nostupidquestions`. The result will look
+like this:
+
+```
+Post title
+-----
+Post body
+```
+
+When a subreddit is requested via this command, its top 100 hot posts are fetched and analyzed like so:
+
+1. The post's title is added to a separate Markov chain that only tracks post titles.
+2. If the post is a self post (only contains body text, and no direct link), its body text is added to the Markov chain
+that only tracks body text.
+3. If the post is a link post, the link URL is added to the body text Markov chain as a single entry.
+
+Just like with the `/comment` command, posts are only fetched a maximum of once per hour.

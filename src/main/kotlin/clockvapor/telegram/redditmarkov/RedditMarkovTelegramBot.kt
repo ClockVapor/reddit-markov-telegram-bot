@@ -29,19 +29,29 @@ class RedditMarkovTelegramBot(private val dataPath: String,
         fun main(_args: Array<String>): Unit = mainBody {
             val args = ArgParser(_args).parseInto(::Args)
             val scraper = RedditScraper(args.dataPath, args.redditClientId, args.redditClientSecret,
-                args.redditAppId, args.redditAppVersion, args.redditUsername, args.redditFetchAmount,
-                args.redditFetchInterval)
+                args.redditAppId, args.redditAppVersion, args.redditUsername, args.redditCommentFetchAmount,
+                args.redditPostFetchAmount, args.redditFetchInterval)
             RedditMarkovTelegramBot(args.dataPath, args.telegramBotToken, scraper).run()
         }
 
-        fun readMarkov(dataPath: String, subreddit: String): RedditMarkovChain =
-            RedditMarkovChain.read(getMarkovPath(dataPath, subreddit))
+        fun readCommentMarkov(dataPath: String, subreddit: String): RedditCommentMarkovChain =
+            RedditCommentMarkovChain.read(getCommentMarkovPath(dataPath, subreddit))
 
-        fun writeMarkov(dataPath: String, subreddit: String, markov: RedditMarkovChain) =
-            markov.write(getMarkovPath(dataPath, subreddit))
+        fun readPostMarkov(dataPath: String, subreddit: String): RedditPostMarkovChain =
+            RedditPostMarkovChain.read(getPostMarkovPath(dataPath, subreddit))
 
-        fun getMarkovPath(dataPath: String, subreddit: String): String =
-            Paths.get(createAndGetDataPath(dataPath), "${subreddit.toLowerCase(Locale.ENGLISH)}.json").toString()
+        fun writeCommentMarkov(dataPath: String, subreddit: String, markov: RedditCommentMarkovChain) =
+            markov.write(getCommentMarkovPath(dataPath, subreddit))
+
+        fun writePostMarkov(dataPath: String, subreddit: String, markov: RedditPostMarkovChain) =
+            markov.write(getPostMarkovPath(dataPath, subreddit))
+
+        fun getCommentMarkovPath(dataPath: String, subreddit: String): String =
+            Paths.get(createAndGetDataPath(dataPath),
+                "${subreddit.toLowerCase(Locale.ENGLISH)}_comment.json").toString()
+
+        fun getPostMarkovPath(dataPath: String, subreddit: String): String =
+            Paths.get(createAndGetDataPath(dataPath), "${subreddit.toLowerCase(Locale.ENGLISH)}_post.json").toString()
 
         private fun createAndGetDataPath(dataPath: String): String =
             dataPath.also { File(it).mkdirs() }
@@ -55,7 +65,10 @@ class RedditMarkovTelegramBot(private val dataPath: String,
                 command("start") { bot, update -> giveHelp(bot, update) }
                 command("help") { bot, update -> giveHelp(bot, update) }
                 command("comment") { bot, update ->
-                    handleUpdate(bot, update)
+                    doCommentCommand(bot, update)
+                }
+                command("post") { bot, update ->
+                    doPostCommand(bot, update)
                 }
             }
         }
@@ -64,14 +77,16 @@ class RedditMarkovTelegramBot(private val dataPath: String,
 
     private fun giveHelp(bot: Bot, update: Update) {
         bot.sendMessage(update.message!!.chat.id,
-            "I create Markov chains for subreddits and use them to generate \"new\" comments.\n\n" +
+            "I create Markov chains for subreddits and use them to generate \"new\" posts and comments.\n\n" +
                 "Use the /comment command like so:\n`/comment <subreddit> [seed]`\n" +
                 "Provide the subreddit name without the `/r/`, and optionally provide a seed word to start the " +
-                "generated comment with.",
+                "generated comment with.\n\n" +
+                "Use the /post command like so:\n`/post <subreddit>`\n" +
+                "Provide the subreddit name without the `/r/`.",
             parseMode = ParseMode.MARKDOWN)
     }
 
-    private fun handleUpdate(bot: Bot, update: Update) {
+    private fun doCommentCommand(bot: Bot, update: Update) {
         val message = update.message!!
         val command = message.entities!![0]
         bot.sendChatAction(message.chat.id, ChatAction.TYPING)
@@ -100,30 +115,78 @@ class RedditMarkovTelegramBot(private val dataPath: String,
         bot.sendMessage(message.chat.id, replyText, replyToMessageId = message.messageId)
     }
 
+    private fun doPostCommand(bot: Bot, update: Update) {
+        val message = update.message!!
+        val command = message.entities!![0]
+        bot.sendChatAction(message.chat.id, ChatAction.TYPING)
+        val replyText: String = tryOrNull {
+            message.text
+                ?.substring(command.offset + command.length)
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?.split(whitespaceRegex)
+                ?.let { texts ->
+                    when (texts.size) {
+                        0 -> EXPECTED_SUBREDDIT_NAME
+                        else -> tryOrNull { generatePost(texts[0]) }
+                    } ?: "<no data available for /r/${texts[0]}>"
+                } ?: EXPECTED_SUBREDDIT_NAME
+        } ?: "<an error occurred>"
+        bot.sendMessage(message.chat.id, replyText, replyToMessageId = message.messageId)
+    }
+
     private fun generateComment(subreddit: String): String =
-        readMarkov(subreddit).generate().joinToString(" ")
+        readCommentMarkov(subreddit).generate().joinToString(" ")
 
     private fun generateComment(subreddit: String, seed: String): MarkovChain.GenerateWithSeedResult =
-        readMarkov(subreddit).generateWithCaseInsensitiveSeed(seed)
+        readCommentMarkov(subreddit).generateWithCaseInsensitiveSeed(seed)
 
-    private fun readMarkov(subreddit: String): RedditMarkovChain {
-        val file = File(getMarkovPath(dataPath, subreddit))
+    private fun generatePost(subreddit: String): String {
+        val markov = readPostMarkov(subreddit)
+        val title = markov.generateTitle().joinToString(" ")
+        val body = markov.generate().joinToString(" ")
+        return "$title\n-----\n$body"
+    }
+
+    private fun readCommentMarkov(subreddit: String): RedditCommentMarkovChain {
+        val file = File(getCommentMarkovPath(dataPath, subreddit))
         return if (file.exists()) {
             if ((System.currentTimeMillis() - file.lastModified()) / 1000L > scraper.fetchInterval) {
                 log("Current data for requested subreddit \"$subreddit\" is old. Fetching new data now.")
                 if (file.delete()) {
-                    scraper.scrape(subreddit)
-                    readMarkov(dataPath, subreddit)
+                    scraper.scrapeComments(subreddit)
+                    readCommentMarkov(dataPath, subreddit)
                 } else {
                     throw RuntimeException("Failed to delete markov file for subreddit \"$subreddit\".")
                 }
             } else {
-                readMarkov(dataPath, subreddit)
+                readCommentMarkov(dataPath, subreddit)
             }
         } else {
             log("No data for requested subreddit \"$subreddit\". Fetching it now.")
-            scraper.scrape(subreddit)
-            readMarkov(dataPath, subreddit)
+            scraper.scrapeComments(subreddit)
+            readCommentMarkov(dataPath, subreddit)
+        }
+    }
+
+    private fun readPostMarkov(subreddit: String): RedditPostMarkovChain {
+        val file = File(getPostMarkovPath(dataPath, subreddit))
+        return if (file.exists()) {
+            if ((System.currentTimeMillis() - file.lastModified()) / 1000L > scraper.fetchInterval) {
+                log("Current data for requested subreddit \"$subreddit\" is old. Fetching new data now.")
+                if (file.delete()) {
+                    scraper.scrapePosts(subreddit)
+                    readPostMarkov(dataPath, subreddit)
+                } else {
+                    throw RuntimeException("Failed to delete markov file for subreddit \"$subreddit\".")
+                }
+            } else {
+                readPostMarkov(dataPath, subreddit)
+            }
+        } else {
+            log("No data for requested subreddit \"$subreddit\". Fetching it now.")
+            scraper.scrapePosts(subreddit)
+            readPostMarkov(dataPath, subreddit)
         }
     }
 
@@ -134,10 +197,12 @@ class RedditMarkovTelegramBot(private val dataPath: String,
         val redditAppId: String by parser.storing("-a", help = "Reddit app ID")
         val redditAppVersion: String by parser.storing("-v", help = "Reddit app version")
         val redditUsername: String by parser.storing("-u", help = "Reddit username")
-        val redditFetchAmount: Int by parser.storing("-f", help = "Number of comments to fetch",
+        val redditCommentFetchAmount: Int by parser.storing("-f", help = "Number of comments to fetch",
+            transform = String::toInt)
+        val redditPostFetchAmount: Int by parser.storing("-p", help = "Number of posts to fetch",
             transform = String::toInt)
         val redditFetchInterval: Long by parser.storing("-g",
-            help = "Comments must be at least this many seconds old before fetching new ones",
+            help = "Comments/posts must be at least this many seconds old before fetching new ones",
             transform = String::toLong)
         val dataPath by parser.storing("-d", "--data", help = "Path to data directory")
     }

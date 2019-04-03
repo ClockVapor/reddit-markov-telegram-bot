@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "clockvapor.telegram"
-version = "0.0.0"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -15,7 +15,7 @@ repositories {
 
 dependencies {
     compile(kotlin("stdlib-jdk8"))
-    compile("com.github.clockvapor", "markov", "0.0.0")
+    compile("com.github.clockvapor", "markov", "0.4.0")
     compile("com.github.clockvapor", "telegram-utils", "0.0.1")
     compile("com.github.mattbdean", "JRAW", "v1.1.0")
     compile("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", "2.9.8")

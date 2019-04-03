@@ -8,8 +8,8 @@ import java.io.File
 
 // Needs to remain public for JSON writing
 @Suppress("MemberVisibilityCanBePrivate")
-class RedditMarkovChain(val ids: MutableSet<String> = mutableSetOf(),
-                        data: MutableMap<String, MutableMap<String, Int>> = mutableMapOf())
+class RedditCommentMarkovChain(val ids: MutableSet<String> = mutableSetOf(),
+                               data: MutableMap<String, MutableMap<String, Int>> = mutableMapOf())
     : MarkovChain(data) {
 
     fun add(comment: Comment): Boolean {
@@ -21,7 +21,7 @@ class RedditMarkovChain(val ids: MutableSet<String> = mutableSetOf(),
     }
 
     companion object {
-        fun read(path: String): RedditMarkovChain =
-            ObjectMapper().readValue<RedditMarkovChain>(File(path), RedditMarkovChain::class.java)
+        fun read(path: String): RedditCommentMarkovChain =
+            ObjectMapper().readValue<RedditCommentMarkovChain>(File(path), RedditCommentMarkovChain::class.java)
     }
 }
