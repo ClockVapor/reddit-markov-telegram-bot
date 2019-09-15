@@ -1,1 +1,1 @@
-worker: java -jar build/libs/reddit-markov-telegram-bot-0.1.0.jar -d "data" -t "$TELEGRAM_BOT_TOKEN" -i "$REDDIT_CLIENT_ID" -s "$REDDIT_CLIENT_SECRET" -a "$REDDIT_APP_ID" -v "$REDDIT_APP_VERSION" -u "$REDDIT_USERNAME" -f "$COMMENT_FETCH_AMOUNT" -p "$POST_FETCH_AMOUNT" -g "$FETCH_INTERVAL"
+worker: java -jar build/libs/reddit-markov-telegram-bot-0.1.1.jar -d "data" -t "$TELEGRAM_BOT_TOKEN" -i "$REDDIT_CLIENT_ID" -s "$REDDIT_CLIENT_SECRET" -a "$REDDIT_APP_ID" -v "$REDDIT_APP_VERSION" -u "$REDDIT_USERNAME" -f "$COMMENT_FETCH_AMOUNT" -p "$POST_FETCH_AMOUNT" -g "$FETCH_INTERVAL"
