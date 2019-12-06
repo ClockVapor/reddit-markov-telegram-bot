@@ -19,7 +19,7 @@ dependencies {
     compile("com.github.clockvapor", "markov", "0.4.0")
     compile("com.github.clockvapor", "telegram-utils", "0.0.1")
     compile("com.github.mattbdean", "JRAW", "v1.1.0")
-    compile("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", "2.9.8")
+    compile("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", "2.10.1")
     compile("com.xenomachina", "kotlin-argparser", "2.0.7")
     compile("io.github.seik", "kotlin-telegram-bot", "0.3.5") {
         exclude("io.github.seik.kotlin-telegram-bot", "echo")
