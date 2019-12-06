@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     compile(kotlin("stdlib-jdk8"))
-    compile("com.github.clockvapor", "markov", "0.4.0")
+    compile("com.github.clockvapor", "markov", "0.4.1")
     compile("com.github.clockvapor", "telegram-utils", "0.0.1")
     compile("com.github.mattbdean", "JRAW", "v1.1.0")
     compile("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", "2.10.1")
